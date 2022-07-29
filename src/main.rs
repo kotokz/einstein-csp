@@ -243,9 +243,9 @@ impl Constraint {
                 }
                 Cigar::Master => {
                     if Drink::Beer == item.drink {
-                        self.results.insert(Rule::Rule12, true);
+                        self.results.insert(Rule::Rule11, true);
                     } else {
-                        self.results.insert(Rule::Rule12, false);
+                        self.results.insert(Rule::Rule11, false);
                     }
                 }
                 Cigar::Prince => {
@@ -279,16 +279,28 @@ impl Constraint {
                 }
             }
 
-            if Pet::Horse == pair[0].pet && Cigar::Dunhill == pair[1].cigar {
-                self.results.insert(Rule::Rule11, true);
+            if Pet::Horse == pair[0].pet {
+                if Cigar::Dunhill == pair[1].cigar {
+                    self.results.insert(Rule::Rule12, true);
+                } else {
+                    self.results.entry(Rule::Rule12).or_insert(false);
+                }
             }
 
-            if Cigar::Dunhill == pair[0].cigar && Pet::Horse == pair[1].pet {
-                self.results.insert(Rule::Rule11, true);
+            if Cigar::Dunhill == pair[0].cigar {
+                if Pet::Horse == pair[1].pet {
+                    self.results.insert(Rule::Rule12, true);
+                } else {
+                    self.results.entry(Rule::Rule12).or_insert(false);
+                }
             }
 
-            if Cigar::Blend == pair[0].cigar && Drink::Water == pair[1].drink {
-                self.results.insert(Rule::Rule15, true);
+            if Cigar::Blend == pair[0].cigar {
+                if Drink::Water == pair[1].drink {
+                    self.results.insert(Rule::Rule15, true);
+                } else {
+                    self.results.entry(Rule::Rule15).or_insert(false);
+                }
             }
 
             if Nation::Norwegian == pair[0].nation {
@@ -299,8 +311,12 @@ impl Constraint {
                 }
             }
 
-            if Drink::Water == pair[0].drink && Cigar::Blend == pair[1].cigar {
-                self.results.insert(Rule::Rule15, true);
+            if Drink::Water == pair[0].drink {
+                if Cigar::Blend == pair[1].cigar {
+                    self.results.insert(Rule::Rule15, true);
+                } else {
+                    self.results.entry(Rule::Rule15).or_insert(false);
+                }
             }
         }
 
