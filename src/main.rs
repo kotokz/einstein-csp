@@ -180,12 +180,81 @@ impl Constraint {
         let count = self.results.iter().map(|(_, v)| v).filter(|&&r| r).count();
         count == 15
     }
-    fn satisfies_ent(&mut self, entities: &[Entity]) -> Option<bool> {
+    fn satisfies_ent(&mut self, item: &Entity) {
+        match item.nation {
+            Nation::British => {
+                if House::Red == item.house {
+                    self.results.insert(Rule::Rule1, true);
+                } else {
+                    self.results.insert(Rule::Rule1, false);
+                }
+            }
+            Nation::Swedish => {
+                if Pet::Dog == item.pet {
+                    self.results.insert(Rule::Rule2, true);
+                } else {
+                    self.results.insert(Rule::Rule2, false);
+                }
+            }
+            Nation::Danish => {
+                if Drink::Tea == item.drink {
+                    self.results.insert(Rule::Rule3, true);
+                } else {
+                    self.results.insert(Rule::Rule3, false);
+                }
+            }
+            _ => {}
+        }
+        match item.house {
+            House::Green => {
+                if Drink::Coffee == item.drink {
+                    self.results.insert(Rule::Rule5, true);
+                } else {
+                    self.results.insert(Rule::Rule5, false);
+                }
+            }
+            House::Yellow => {
+                if Cigar::Dunhill == item.cigar {
+                    self.results.insert(Rule::Rule7, true);
+                } else {
+                    self.results.insert(Rule::Rule7, false);
+                }
+            }
+            _ => {}
+        }
+        match item.cigar {
+            Cigar::Pall => {
+                if Pet::Bird == item.pet {
+                    self.results.insert(Rule::Rule6, true);
+                } else {
+                    self.results.insert(Rule::Rule6, false);
+                }
+            }
+            Cigar::Master => {
+                if Drink::Beer == item.drink {
+                    self.results.insert(Rule::Rule11, true);
+                } else {
+                    self.results.insert(Rule::Rule11, false);
+                }
+            }
+            Cigar::Prince => {
+                if Nation::German == item.nation {
+                    self.results.insert(Rule::Rule13, true);
+                } else {
+                    self.results.insert(Rule::Rule13, false);
+                }
+            }
+            _ => {}
+        }
+    }
+
+    fn satisfies_cmp(&mut self, entities: &[Entity]) -> Option<bool> {
         if let Some(e) = entities.get(0) {
             if e.nation == Nation::Norwegian {
                 self.results.insert(Rule::Rule9, true);
             } else {
                 self.results.insert(Rule::Rule9, false);
+                return None;
             }
         }
 
@@ -194,85 +263,18 @@ impl Constraint {
                 self.results.insert(Rule::Rule8, true);
             } else {
                 self.results.insert(Rule::Rule8, false);
+                return None;
             }
         }
-        for item in entities.iter() {
-            match item.nation {
-                Nation::British => {
-                    if House::Red == item.house {
-                        self.results.insert(Rule::Rule1, true);
-                    } else {
-                        self.results.insert(Rule::Rule1, false);
-                    }
-                }
-                Nation::Swedish => {
-                    if Pet::Dog == item.pet {
-                        self.results.insert(Rule::Rule2, true);
-                    } else {
-                        self.results.insert(Rule::Rule2, false);
-                    }
-                }
-                Nation::Danish => {
-                    if Drink::Tea == item.drink {
-                        self.results.insert(Rule::Rule3, true);
-                    } else {
-                        self.results.insert(Rule::Rule3, false);
-                    }
-                }
-                _ => {}
-            }
-            match item.house {
-                House::Green => {
-                    if Drink::Coffee == item.drink {
-                        self.results.insert(Rule::Rule5, true);
-                    } else {
-                        self.results.insert(Rule::Rule5, false);
-                    }
-                }
-                House::Yellow => {
-                    if Cigar::Dunhill == item.cigar {
-                        self.results.insert(Rule::Rule7, true);
-                    } else {
-                        self.results.insert(Rule::Rule7, false);
-                    }
-                }
-                _ => {}
-            }
-            match item.cigar {
-                Cigar::Pall => {
-                    if Pet::Bird == item.pet {
-                        self.results.insert(Rule::Rule6, true);
-                    } else {
-                        self.results.insert(Rule::Rule6, false);
-                    }
-                }
-                Cigar::Master => {
-                    if Drink::Beer == item.drink {
-                        self.results.insert(Rule::Rule11, true);
-                    } else {
-                        self.results.insert(Rule::Rule11, false);
-                    }
-                }
-                Cigar::Prince => {
-                    if Nation::German == item.nation {
-                        self.results.insert(Rule::Rule13, true);
-                    } else {
-                        self.results.insert(Rule::Rule13, false);
-                    }
-                }
-                _ => {}
-            }
-        }
-        None
-    }
 
-    fn satisfies_cmp(&mut self, entities: &[Entity]) -> Option<bool> {
         for pair in entities.windows(2) {
+            self.satisfies_ent(&pair[0]);
             if House::Green == pair[0].house {
                 if House::White == pair[1].house {
                     self.results.insert(Rule::Rule4, true);
                 } else {
                     self.results.insert(Rule::Rule4, false);
+                    return None;
                 }
             }
 
@@ -281,6 +283,7 @@ impl Constraint {
                     self.results.insert(Rule::Rule10, true);
                 } else {
                     self.results.insert(Rule::Rule10, false);
+                    return None;
                 }
             } else if Pet::Horse == pair[0].pet {
                 if Cigar::Dunhill == pair[1].cigar {
@@ -311,6 +314,7 @@ impl Constraint {
                     self.results.insert(Rule::Rule14, true);
                 } else {
                     self.results.insert(Rule::Rule14, false);
+                    return None;
                 }
             }
 
@@ -322,11 +326,14 @@ impl Constraint {
                 }
             }
         }
+        if let Some(item) = entities.last() {
+            self.satisfies_ent(item);
+        }
 
         None
     }
+
     fn satisfies(&mut self, entities: &[Entity]) -> bool {
-        self.satisfies_ent(entities);
         self.satisfies_cmp(entities);
         self.check()
     }
