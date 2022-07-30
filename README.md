@@ -5,14 +5,22 @@ Einstein's Puzzle
 
 ```  bash
 ❯ time ./target/release/einstein-csp
-0: Yellow, Norwegian, Water, Dunhill, Cat
-1: Blue, Danish, Tea, Blend, Horse
-2: Red, British, Milk, Pall, Bird
-3: Green, German, Coffee, Prince, Fish
-4: White, Swedish, Beer, Master, Dog
++--------+-----------+--------+---------+-------+
+| House  | Nation    | Drink  | Cigar   | Pet   |
++--------+-----------+--------+---------+-------+
+| Yellow | Norwegian | Water  | Dunhill | Cat   |
++--------+-----------+--------+---------+-------+
+| Blue   | Danish    | Tea    | Blend   | Horse |
++--------+-----------+--------+---------+-------+
+| Red    | British   | Milk   | Pall    | Bird  |
++--------+-----------+--------+---------+-------+
+| Green  | German    | Coffee | Prince  | Fish  |
++--------+-----------+--------+---------+-------+
+| White  | Swedish   | Beer   | Master  | Dog   |
++--------+-----------+--------+---------+-------+
 
 ________________________________________________________
-Executed in  142.18 millis    fish           external
-   usr time  134.85 millis  112.00 micros  134.74 millis
-   sys time    0.16 millis  158.00 micros    0.00 millis
+Executed in   90.85 millis    fish           external
+   usr time   82.53 millis   83.00 micros   82.44 millis
+   sys time    0.20 millis  198.00 micros    0.00 millis
 ```

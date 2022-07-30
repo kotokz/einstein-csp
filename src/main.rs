@@ -1,10 +1,10 @@
-use std::{
-    collections::{HashMap, HashSet},
-    iter::Copied,
-    slice::Iter,
-};
+use cli_table::{print_stdout, Table, WithTitle};
+use fxhash::{FxHashMap, FxHashSet};
+use strum_macros::Display;
 
-#[derive(Eq, PartialEq, Clone, Debug, Copy, Hash)]
+use std::{iter::Copied, slice::Iter};
+
+#[derive(Eq, PartialEq, Clone, Debug, Copy, Hash, Display)]
 enum House {
     Blue,
     Green,
@@ -13,7 +13,7 @@ enum House {
     Yellow,
 }
 
-#[derive(Eq, PartialEq, Clone, Debug, Copy, Hash)]
+#[derive(Eq, PartialEq, Clone, Debug, Copy, Hash, Display)]
 enum Nation {
     British,
     Danish,
@@ -22,7 +22,7 @@ enum Nation {
     Swedish,
 }
 
-#[derive(Eq, PartialEq, Clone, Debug, Copy, Hash)]
+#[derive(Eq, PartialEq, Clone, Debug, Copy, Hash, Display)]
 enum Drink {
     Beer,
     Coffee,
@@ -31,7 +31,7 @@ enum Drink {
     Water,
 }
 
-#[derive(Eq, PartialEq, Clone, Debug, Copy, Hash)]
+#[derive(Eq, PartialEq, Clone, Debug, Copy, Hash, Display)]
 enum Cigar {
     Master,
     Dunhill,
@@ -40,7 +40,7 @@ enum Cigar {
     Blend,
 }
 
-#[derive(Eq, PartialEq, Clone, Debug, Copy, Hash)]
+#[derive(Eq, PartialEq, Clone, Debug, Copy, Hash, Display)]
 enum Pet {
     Cat,
     Bird,
@@ -49,12 +49,17 @@ enum Pet {
     Horse,
 }
 
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, Table)]
 struct Entity {
+    #[table(title = "House")]
     house: House,
+    #[table(title = "Nation")]
     nation: Nation,
+    #[table(title = "Drink")]
     drink: Drink,
+    #[table(title = "Cigar")]
     cigar: Cigar,
+    #[table(title = "Pet")]
     pet: Pet,
 }
 
@@ -157,13 +162,13 @@ enum Rule {
 }
 
 struct Constraint {
-    results: HashMap<Rule, bool>,
+    results: FxHashMap<Rule, bool>,
 }
 
 impl Constraint {
     fn default() -> Self {
         Constraint {
-            results: HashMap::new(),
+            results: FxHashMap::default(),
         }
     }
 
@@ -277,9 +282,7 @@ impl Constraint {
                 } else {
                     self.results.insert(Rule::Rule10, false);
                 }
-            }
-
-            if Pet::Horse == pair[0].pet {
+            } else if Pet::Horse == pair[0].pet {
                 if Cigar::Dunhill == pair[1].cigar {
                     self.results.insert(Rule::Rule12, true);
                 } else {
@@ -330,11 +333,11 @@ impl Constraint {
 }
 
 fn assign_ent(entities: &[Entity]) -> Vec<Entity> {
-    let mut dis_cigar: HashSet<Cigar> = HashSet::new();
-    let mut dis_drink: HashSet<Drink> = HashSet::new();
-    let mut dis_house: HashSet<House> = HashSet::new();
-    let mut dis_nation: HashSet<Nation> = HashSet::new();
-    let mut dis_pet: HashSet<Pet> = HashSet::new();
+    let mut dis_cigar: FxHashSet<Cigar> = FxHashSet::default();
+    let mut dis_drink: FxHashSet<Drink> = FxHashSet::default();
+    let mut dis_house: FxHashSet<House> = FxHashSet::default();
+    let mut dis_nation: FxHashSet<Nation> = FxHashSet::default();
+    let mut dis_pet: FxHashSet<Pet> = FxHashSet::default();
     for item in entities.iter() {
         dis_cigar.insert(item.cigar);
         dis_drink.insert(item.drink);
@@ -342,7 +345,7 @@ fn assign_ent(entities: &[Entity]) -> Vec<Entity> {
         dis_nation.insert(item.nation);
         dis_pet.insert(item.pet);
     }
-    let mut possibilities = vec![];
+    let mut candidates = vec![];
     for cigar in Cigar::iter() {
         if dis_cigar.contains(&cigar) {
             continue;
@@ -378,14 +381,14 @@ fn assign_ent(entities: &[Entity]) -> Vec<Entity> {
                         temp_ents.push(local_ent);
 
                         if constrain.satisfies(&temp_ents) {
-                            possibilities.push(local_ent);
+                            candidates.push(local_ent);
                         }
                     }
                 }
             }
         }
     }
-    possibilities
+    candidates
 }
 
 fn backtracking_search(length: usize, confirmed: &Vec<Entity>) -> Option<Vec<Entity>> {
@@ -398,9 +401,9 @@ fn backtracking_search(length: usize, confirmed: &Vec<Entity>) -> Option<Vec<Ent
         }
     }
 
-    let possibles = assign_ent(confirmed);
+    let candidates = assign_ent(confirmed);
 
-    for ent in possibles.iter() {
+    for ent in candidates.iter() {
         // find a possible entity candidate
         let mut next_confirmed = confirmed.clone();
         next_confirmed.push(*ent);
@@ -411,15 +414,8 @@ fn backtracking_search(length: usize, confirmed: &Vec<Entity>) -> Option<Vec<Ent
     None
 }
 
-fn main() -> Result<(), Box<dyn std::error::Error>> {
-    let entities = backtracking_search(5, &vec![]).ok_or("Failed to solve the puzzle")?;
+fn main() {
+    let entities = backtracking_search(5, &vec![]).expect("Failed to solve the puzzle");
 
-    for (index, ent) in entities.iter().enumerate() {
-        println!(
-            "{}: {:?}, {:?}, {:?}, {:?}, {:?}",
-            index, ent.house, ent.nation, ent.drink, ent.cigar, ent.pet
-        );
-    }
-
-    Ok(())
+    print_stdout(entities.with_title()).unwrap();
 }
