@@ -21,6 +21,6 @@ Einstein's Puzzle
 
 ❯ hyperfine ./target/release/einstein-csp
 Benchmark 1: ./target/release/einstein-csp
-  Time (mean ± σ):      56.0 ms ±   1.7 ms    [User: 47.0 ms, System: 0.4 ms]
-  Range (min … max):    53.9 ms …  61.0 ms    49 runs
+  Time (mean ± σ):      44.8 ms ±   0.9 ms    [User: 35.7 ms, System: 1.0 ms]
+  Range (min … max):    43.6 ms …  49.2 ms    60 runs
 ```

@@ -172,21 +172,22 @@ impl Constraint {
         }
     }
 
-    fn check(&self) -> bool {
-        self.results.iter().map(|(_, v)| v).all(|v| *v)
-    }
+    // fn check(&self) -> bool {
+    //     self.results.iter().map(|(_, v)| v).all(|v| *v)
+    // }
 
     fn all_passed(&self) -> bool {
         let count = self.results.iter().map(|(_, v)| v).filter(|&&r| r).count();
         count == 15
     }
-    fn satisfies_ent(&mut self, item: &Entity) {
+    fn satisfies_ent(&mut self, item: &Entity) -> bool {
         match item.nation {
             Nation::British => {
                 if House::Red == item.house {
                     self.results.insert(Rule::Rule1, true);
                 } else {
                     self.results.insert(Rule::Rule1, false);
+                    return false;
                 }
             }
             Nation::Swedish => {
@@ -194,6 +195,7 @@ impl Constraint {
                     self.results.insert(Rule::Rule2, true);
                 } else {
                     self.results.insert(Rule::Rule2, false);
+                    return false;
                 }
             }
             Nation::Danish => {
@@ -201,6 +203,7 @@ impl Constraint {
                     self.results.insert(Rule::Rule3, true);
                 } else {
                     self.results.insert(Rule::Rule3, false);
+                    return false;
                 }
             }
             _ => {}
@@ -211,6 +214,7 @@ impl Constraint {
                     self.results.insert(Rule::Rule5, true);
                 } else {
                     self.results.insert(Rule::Rule5, false);
+                    return false;
                 }
             }
             House::Yellow => {
@@ -218,6 +222,7 @@ impl Constraint {
                     self.results.insert(Rule::Rule7, true);
                 } else {
                     self.results.insert(Rule::Rule7, false);
+                    return false;
                 }
             }
             _ => {}
@@ -228,6 +233,7 @@ impl Constraint {
                     self.results.insert(Rule::Rule6, true);
                 } else {
                     self.results.insert(Rule::Rule6, false);
+                    return false;
                 }
             }
             Cigar::Master => {
@@ -235,6 +241,7 @@ impl Constraint {
                     self.results.insert(Rule::Rule11, true);
                 } else {
                     self.results.insert(Rule::Rule11, false);
+                    return false;
                 }
             }
             Cigar::Prince => {
@@ -242,19 +249,22 @@ impl Constraint {
                     self.results.insert(Rule::Rule13, true);
                 } else {
                     self.results.insert(Rule::Rule13, false);
+                    return false;
                 }
             }
             _ => {}
         }
+
+        true
     }
 
-    fn satisfies_cmp(&mut self, entities: &[Entity]) -> Option<bool> {
+    fn satisfies(&mut self, entities: &[Entity]) -> bool {
         if let Some(e) = entities.get(0) {
             if e.nation == Nation::Norwegian {
                 self.results.insert(Rule::Rule9, true);
             } else {
                 self.results.insert(Rule::Rule9, false);
-                return None;
+                return false;
             }
         }
 
@@ -263,18 +273,20 @@ impl Constraint {
                 self.results.insert(Rule::Rule8, true);
             } else {
                 self.results.insert(Rule::Rule8, false);
-                return None;
+                return false;
             }
         }
 
         for pair in entities.windows(2) {
-            self.satisfies_ent(&pair[0]);
+            if !self.satisfies_ent(&pair[0]) {
+                return false;
+            }
             if House::Green == pair[0].house {
                 if House::White == pair[1].house {
                     self.results.insert(Rule::Rule4, true);
                 } else {
                     self.results.insert(Rule::Rule4, false);
-                    return None;
+                    return false;
                 }
             }
 
@@ -283,13 +295,16 @@ impl Constraint {
                     self.results.insert(Rule::Rule10, true);
                 } else {
                     self.results.insert(Rule::Rule10, false);
-                    return None;
+                    return false;
                 }
             } else if Pet::Horse == pair[0].pet {
                 if Cigar::Dunhill == pair[1].cigar {
                     self.results.insert(Rule::Rule12, true);
                 } else {
                     self.results.entry(Rule::Rule12).or_insert(false);
+                    if Some(&false) == self.results.get(&Rule::Rule12) {
+                        return false;
+                    }
                 }
             }
 
@@ -298,6 +313,9 @@ impl Constraint {
                     self.results.insert(Rule::Rule12, true);
                 } else {
                     self.results.entry(Rule::Rule12).or_insert(false);
+                    if Some(&false) == self.results.get(&Rule::Rule12) {
+                        return false;
+                    }
                 }
             }
 
@@ -306,6 +324,9 @@ impl Constraint {
                     self.results.insert(Rule::Rule15, true);
                 } else {
                     self.results.entry(Rule::Rule15).or_insert(false);
+                    if Some(&false) == self.results.get(&Rule::Rule15) {
+                        return false;
+                    }
                 }
             }
 
@@ -314,7 +335,7 @@ impl Constraint {
                     self.results.insert(Rule::Rule14, true);
                 } else {
                     self.results.insert(Rule::Rule14, false);
-                    return None;
+                    return false;
                 }
             }
 
@@ -323,19 +344,19 @@ impl Constraint {
                     self.results.insert(Rule::Rule15, true);
                 } else {
                     self.results.entry(Rule::Rule15).or_insert(false);
+                    if Some(&false) == self.results.get(&Rule::Rule15) {
+                        return false;
+                    }
                 }
             }
         }
         if let Some(item) = entities.last() {
-            self.satisfies_ent(item);
+            if !self.satisfies_ent(item) {
+                return false;
+            }
         }
 
-        None
-    }
-
-    fn satisfies(&mut self, entities: &[Entity]) -> bool {
-        self.satisfies_cmp(entities);
-        self.check()
+        true
     }
 }
 
