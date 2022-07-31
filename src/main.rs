@@ -2,6 +2,7 @@ use cli_table::{print_stdout, Table, WithTitle};
 use fxhash::{FxHashMap, FxHashSet};
 use strum_macros::Display;
 
+use rayon::prelude::*;
 use std::{iter::Copied, slice::Iter};
 
 #[derive(Eq, PartialEq, Clone, Debug, Copy, Hash, Display)]
@@ -431,15 +432,15 @@ fn backtracking_search(length: usize, confirmed: &Vec<Entity>) -> Option<Vec<Ent
 
     let candidates = assign_ent(confirmed);
 
-    for ent in candidates.iter() {
-        // find a possible entity candidate
-        let mut next_confirmed = confirmed.clone();
-        next_confirmed.push(*ent);
-        if let Some(result) = backtracking_search(length, &next_confirmed) {
-            return Some(result);
-        }
-    }
-    None
+    candidates
+        .par_iter()
+        .map(|ent| {
+            let mut next_confirmed = confirmed.clone();
+            next_confirmed.push(*ent);
+            backtracking_search(length, &next_confirmed)
+        })
+        .find_first(Option::is_some)
+        .unwrap_or(None)
 }
 
 fn main() {
